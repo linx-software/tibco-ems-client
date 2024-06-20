@@ -1,15 +1,5 @@
-/* 
- * Copyright (c) 2001-2016 TIBCO Software Inc. 
- * All Rights Reserved. Confidential & Proprietary.
- * For more information, please contact:
- * TIBCO Software Inc., Palo Alto, California, USA
- * 
- * $Id: csMsgConsumer.cs 90180 2016-12-13 23:00:37Z $
- * 
- */
-
 /// <summary>
-/// This is a sample of a basic csMsgConsumer.
+/// This is a sample of a basic message consumer.
 ///
 /// This sample subscribes to specified destination and receives and prints all
 /// received messages. 
@@ -21,7 +11,7 @@
 /// If this sample is used to receive messages published by csMsgProducer
 /// sample, it must be started prior to running the csMsgProducer sample.
 ///
-/// Usage:  csMsgConsumer [options]
+/// Usage: exe-file-name [options]
 ///
 ///    where options are:
 ///
@@ -41,56 +31,59 @@
 using System;
 using TIBCO.EMS;
 
-public class csMsgConsumer : IExceptionListener
+namespace LinxJMS;
+
+public class MessageConsumer : IExceptionListener
 {
-    String  serverUrl  = null;
-    String  userName   = null;
-    String  password   = null;
-    String  name       = "topic.sample";
-    bool    useTopic   = true;
-    int     ackMode    = Session.AUTO_ACKNOWLEDGE;
-    
-    Connection       connection  = null;
-    Session          session     = null;
-    MessageConsumer  msgConsumer = null;
-    Destination      destination = null;
-    
-    public csMsgConsumer(String[] args) 
+    private string serverUrl;
+    private string userName;
+    private string password;
+    private string name = "topic.sample";
+    private bool useTopic = true;
+    private int ackMode = Session.AUTO_ACKNOWLEDGE;
+
+    private Connection connection;
+    private Session session;
+    private TIBCO.EMS.MessageConsumer msgConsumer;
+    private Destination destination;
+
+    public MessageConsumer(string[] args)
     {
         ParseArgs(args);
-        
-        try {
-            tibemsUtilities.initSSLParams(serverUrl,args);
+
+        try
+        {
+            SslHelpers.InitSSLParams(this.serverUrl, args);
         }
         catch (Exception e)
         {
-            System.Console.WriteLine("Exception: "+e.Message);
-            System.Console.WriteLine(e.StackTrace);
-            System.Environment.Exit(-1);
+            Console.WriteLine("Exception: " + e.Message);
+            Console.WriteLine(e.StackTrace);
+            Environment.Exit(-1);
         }
 
         Console.WriteLine("\n------------------------------------------------------------------------");
-        Console.WriteLine("csMsgConsumer SAMPLE");
+        Console.WriteLine($"{nameof(MessageConsumer)} SAMPLE");
         Console.WriteLine("------------------------------------------------------------------------");
-        Console.WriteLine("Server....................... " + ((serverUrl != null)?serverUrl:"localhost"));
-        Console.WriteLine("User......................... " + ((userName != null)?userName:"(null)"));
-        Console.WriteLine("Destination.................. " + name);
+        Console.WriteLine("Server....................... " + (this.serverUrl != null ? this.serverUrl : "localhost"));
+        Console.WriteLine("User......................... " + (this.userName != null ? this.userName : "(null)"));
+        Console.WriteLine("Destination.................. " + this.name);
         Console.WriteLine("------------------------------------------------------------------------\n");
-        
+
         try
-            {
+        {
             Run();
         }
         catch (EMSException e)
         {
-            Console.Error.WriteLine("Exception in csMsgConsumer: " + e.Message);
+            Console.Error.WriteLine($"Exception in {nameof(MessageConsumer)}: " + e.Message);
             Console.Error.WriteLine(e.StackTrace);
         }
     }
-    
-    private void Usage() 
+
+    private void Usage()
     {
-        Console.WriteLine("\nUsage: csMsgConsumer [options]");
+        Console.WriteLine("\nUsage: LinxJMS.exe -read [options]");
         Console.WriteLine("");
         Console.WriteLine("   where options are:");
         Console.WriteLine("");
@@ -105,88 +98,89 @@ public class csMsgConsumer : IExceptionListener
         Console.WriteLine("   -help-ssl              - help on ssl parameters");
         Environment.Exit(0);
     }
-    
-    private void ParseArgs(String[] args) 
+
+    private void ParseArgs(string[] args)
     {
         int i = 0;
-        
+
         while (i < args.Length)
         {
-            if (args[i].CompareTo("-server") == 0) 
+            if (args[i].CompareTo("-server") == 0)
             {
-                if ((i + 1) >= args.Length)
+                if (i + 1 >= args.Length)
                     Usage();
-                serverUrl = args[i+1];
-                i += 2;
-            }
-            else 
-            if (args[i].CompareTo("-topic") == 0) 
-            {
-                if ((i + 1) >= args.Length)
-                    Usage();
-                name = args[i+1];
+                this.serverUrl = args[i + 1];
                 i += 2;
             }
             else
-            if (args[i].CompareTo("-queue") == 0) 
+            if (args[i].CompareTo("-topic") == 0)
             {
-                if ((i + 1) >= args.Length)
+                if (i + 1 >= args.Length)
                     Usage();
-                name = args[i+1];
+                this.name = args[i + 1];
                 i += 2;
-                useTopic = false;
-            } 
-            else 
-            if (args[i].CompareTo("-user") == 0) 
+            }
+            else
+            if (args[i].CompareTo("-queue") == 0)
             {
-                if ((i + 1) >= args.Length)
+                if (i + 1 >= args.Length)
                     Usage();
-                userName = args[i+1];
+                this.name = args[i + 1];
                 i += 2;
-            } 
-            else 
-            if (args[i].CompareTo("-password") == 0) 
+                this.useTopic = false;
+            }
+            else
+            if (args[i].CompareTo("-user") == 0)
             {
-                if ((i + 1) >= args.Length)
+                if (i + 1 >= args.Length)
                     Usage();
-                password = args[i+1];
+                this.userName = args[i + 1];
                 i += 2;
-            } 
-            else 
-            if (args[i].CompareTo("-ackmode") == 0) 
+            }
+            else
+            if (args[i].CompareTo("-password") == 0)
             {
-                if ((i + 1) >= args.Length)
+                if (i + 1 >= args.Length)
                     Usage();
-                if (args[i+1].CompareTo("AUTO")==0)
-                    ackMode = Session.AUTO_ACKNOWLEDGE;
-                else if (args[i+1].CompareTo("CLIENT")==0)
-                    ackMode = Session.CLIENT_ACKNOWLEDGE;
-                else if (args[i+1].CompareTo("DUPS_OK")==0)
-                    ackMode = Session.DUPS_OK_ACKNOWLEDGE;
-                else if (args[i+1].CompareTo("EXPLICIT_CLIENT")==0)
-                    ackMode = Session.EXPLICIT_CLIENT_ACKNOWLEDGE;
-                else if (args[i+1].CompareTo("EXPLICIT_CLIENT_DUPS_OK")==0)
-                    ackMode = Session.EXPLICIT_CLIENT_DUPS_OK_ACKNOWLEDGE;
-                else if (args[i+1].CompareTo("NO")==0)
-                    ackMode = Session.NO_ACKNOWLEDGE;
+                this.password = args[i + 1];
+                i += 2;
+            }
+            else
+            if (args[i].CompareTo("-ackmode") == 0)
+            {
+                if (i + 1 >= args.Length)
+                    Usage();
+                if (args[i + 1].CompareTo("AUTO") == 0)
+                    this.ackMode = Session.AUTO_ACKNOWLEDGE;
+                else if (args[i + 1].CompareTo("CLIENT") == 0)
+                    this.ackMode = Session.CLIENT_ACKNOWLEDGE;
+                else if (args[i + 1].CompareTo("DUPS_OK") == 0)
+                    this.ackMode = Session.DUPS_OK_ACKNOWLEDGE;
+                else if (args[i + 1].CompareTo("EXPLICIT_CLIENT") == 0)
+                    this.ackMode = Session.EXPLICIT_CLIENT_ACKNOWLEDGE;
+                else if (args[i + 1].CompareTo("EXPLICIT_CLIENT_DUPS_OK") == 0)
+                    this.ackMode = Session.EXPLICIT_CLIENT_DUPS_OK_ACKNOWLEDGE;
+                else if (args[i + 1].CompareTo("NO") == 0)
+                    this.ackMode = Session.NO_ACKNOWLEDGE;
                 else
                 {
-                    Console.Error.WriteLine("Unrecognized -ackmode: " + args[i+1]);
+                    Console.Error.WriteLine("Unrecognized -ackmode: " + args[i + 1]);
                     Usage();
                 }
                 i += 2;
-            } 
-            else 
-            if (args[i].CompareTo("-help") == 0) {
-                Usage();
-            } 
-            else 
-            if (args[i].CompareTo("-help-ssl")==0)
-            {
-                tibemsUtilities.sslUsage();
             }
-            else 
-            if(args[i].StartsWith("-ssl"))
+            else
+            if (args[i].CompareTo("-help") == 0)
+            {
+                Usage();
+            }
+            else
+            if (args[i].CompareTo("-help-ssl") == 0)
+            {
+                SslHelpers.SslUsage();
+            }
+            else
+            if (args[i].StartsWith("-ssl"))
             {
                 i += 2;
             }
@@ -195,59 +189,61 @@ public class csMsgConsumer : IExceptionListener
             {
                 i += 1;
             }
-            else {
+            else
+            {
                 Console.Error.WriteLine("Unrecognized parameter: " + args[i]);
                 Usage();
             }
         }
     }
-    
-    public void OnException(EMSException e) 
+
+    public void OnException(EMSException e)
     {
         // print the connection exception status
         Console.Error.WriteLine("Connection Exception: " + e.Message);
     }
 
-    private void Run()  {
+    private void Run()
+    {
 
         Message msg = null;
-        
-        Console.WriteLine("Subscribing to destination: " + name + "\n");
-        
-        ConnectionFactory factory = new TIBCO.EMS.ConnectionFactory(serverUrl);
-        
+
+        Console.WriteLine("Subscribing to destination: " + this.name + "\n");
+
+        ConnectionFactory factory = new ConnectionFactory(this.serverUrl);
+
         // create the connection
-        connection = factory.CreateConnection(userName, password);
-        
+        this.connection = factory.CreateConnection(this.userName, this.password);
+
         // create the session
-        session = connection.CreateSession(false, ackMode);
-        
+        this.session = this.connection.CreateSession(false, this.ackMode);
+
         // set the exception listener
-        connection.ExceptionListener = this;
-        
+        this.connection.ExceptionListener = this;
+
         // create the destination
-        if (useTopic)
-            destination = session.CreateTopic(name);
+        if (this.useTopic)
+            this.destination = this.session.CreateTopic(this.name);
         else
-            destination = session.CreateQueue(name);
-        
+            this.destination = this.session.CreateQueue(this.name);
+
         // create the consumer
-        msgConsumer = session.CreateConsumer(destination);
-        
+        this.msgConsumer = this.session.CreateConsumer(this.destination);
+
         // start the connection
-        connection.Start();
-        
+        this.connection.Start();
+
         // read messages
         while (true)
         {
             // receive the message
-            msg = msgConsumer.ReceiveNoWait();
+            msg = this.msgConsumer.ReceiveNoWait();
             if (msg == null)
                 break;
-            
-            if (ackMode == Session.CLIENT_ACKNOWLEDGE ||
-                ackMode == Session.EXPLICIT_CLIENT_ACKNOWLEDGE ||
-                ackMode == Session.EXPLICIT_CLIENT_DUPS_OK_ACKNOWLEDGE)
+
+            if (this.ackMode == Session.CLIENT_ACKNOWLEDGE ||
+                this.ackMode == Session.EXPLICIT_CLIENT_ACKNOWLEDGE ||
+                this.ackMode == Session.EXPLICIT_CLIENT_DUPS_OK_ACKNOWLEDGE)
                 msg.Acknowledge();
 
             Console.WriteLine("Received message: \r\n=============\r\n" + msg + "\r\n=============");
@@ -263,13 +259,8 @@ public class csMsgConsumer : IExceptionListener
                 Console.WriteLine(bm.ReadDouble());
             }
         }
-        
+
         // close the connection
-        connection.Close();
+        this.connection.Close();
     }
-    
-   // public static void Main(String[] args) 
-  //  {
-  //      csMsgConsumer generatedAux = new csMsgConsumer(args);
-  //  }
 }

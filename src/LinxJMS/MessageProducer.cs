@@ -1,15 +1,5 @@
-/* 
- * Copyright (c) 2001-2016 TIBCO Software Inc. 
- * All Rights Reserved. Confidential & Proprietary.
- * For more information, please contact:
- * TIBCO Software Inc., Palo Alto, California, USA
- * 
- * $Id: csMsgProducer.cs 90180 2016-12-13 23:00:37Z $
- * 
- */
-
 /// <summary>
-///  This is a sample of a basic csMsgProducer.
+///  This is a sample of a basic message producer.
 /// 
 ///  This samples publishes specified message(s) on a specified
 ///  destination and quits.
@@ -26,7 +16,7 @@
 ///  If -topic is not specified this sample will use a topic named
 ///  "topic.sample".
 /// 
-///  Usage:  csMsgProducer  [options]
+///  Usage: exe-file-name [options]
 ///                                <message-text1>
 ///                                ...
 ///                                <message-textN>
@@ -47,156 +37,159 @@ using System;
 using System.Collections;
 using TIBCO.EMS;
 
-public class csMsgProducer
+namespace LinxJMS;
+
+public class MessageProducer
 {
-    String     serverUrl = null;
-    String     userName  = null;
-    String     password  = null;
-    String     name      = "topic.sample";
-    ArrayList  data      = new ArrayList();
-    bool       useTopic  = true;
-    bool       useAsync  = false;
+    private string serverUrl;
+    private string userName;
+    private string password;
+    private string name = "topic.sample";
+    private ArrayList data = [];
+    private bool useTopic = true;
+    private bool useAsync;
 
-    Connection       connection  = null;
-    Session          session     = null;
-    MessageProducer  msgProducer = null;
-    Destination      destination = null;
+    private Connection connection;
+    private Session session;
+    private TIBCO.EMS.MessageProducer msgProducer;
+    private Destination destination;
 
-    EMSCompletionListener completionListener = null;
-    
-    class EMSCompletionListener : ICompletionListener
+    private EMSCompletionListener completionListener;
+
+    private class EMSCompletionListener : ICompletionListener
     {
         // Note:  Use caution when modifying a message in a completion
         // listener to avoid concurrent message use.
 
         public void OnCompletion(Message msg)
         {
-            try 
+            try
             {
-                System.Console.WriteLine("Successfully sent message {0}.",
+                Console.WriteLine("Successfully sent message {0}.",
                     ((TextMessage)msg).Text);
             }
             catch (EMSException e)
             {
-                System.Console.WriteLine("Error retrieving message text.");
-                System.Console.WriteLine("Message: " + e.Message);
-                System.Console.WriteLine(e.StackTrace);
+                Console.WriteLine("Error retrieving message text.");
+                Console.WriteLine("Message: " + e.Message);
+                Console.WriteLine(e.StackTrace);
             }
         }
 
         public void OnException(Message msg, Exception ex)
         {
-            try 
+            try
             {
-                System.Console.WriteLine("Error sending message {0}.",
+                Console.WriteLine("Error sending message {0}.",
                         ((TextMessage)msg).Text);
             }
             catch (EMSException e)
             {
-                System.Console.WriteLine("Error retrieving message text.");
-                System.Console.WriteLine("Message: " + e.Message);
-                System.Console.WriteLine(e.StackTrace);
+                Console.WriteLine("Error retrieving message text.");
+                Console.WriteLine("Message: " + e.Message);
+                Console.WriteLine(e.StackTrace);
             }
-            
-            System.Console.WriteLine("Message: " + ex.Message);
-            System.Console.WriteLine(ex.StackTrace);
+
+            Console.WriteLine("Message: " + ex.Message);
+            Console.WriteLine(ex.StackTrace);
         }
-        
+
     }
-    
-    public csMsgProducer(String[] args) 
+
+    public MessageProducer(string[] args)
     {
         ParseArgs(args);
-        
-        try {
-            tibemsUtilities.initSSLParams(serverUrl,args);
+
+        try
+        {
+            SslHelpers.InitSSLParams(this.serverUrl, args);
         }
         catch (Exception e)
         {
-            System.Console.WriteLine("Exception: "+e.Message);
-            System.Console.WriteLine(e.StackTrace);
-            System.Environment.Exit(-1);
+            Console.WriteLine("Exception: " + e.Message);
+            Console.WriteLine(e.StackTrace);
+            Environment.Exit(-1);
         }
-        
+
         Console.WriteLine("\n------------------------------------------------------------------------");
-        Console.WriteLine("csMsgProducer SAMPLE");
+        Console.WriteLine($"{nameof(MessageProducer)} SAMPLE");
         Console.WriteLine("------------------------------------------------------------------------");
-        Console.WriteLine("Server....................... " + ((serverUrl != null)?serverUrl:"localhost"));
-        Console.WriteLine("User......................... " + ((userName != null)?userName:"(null)"));
-        Console.WriteLine("Destination.................. " + name);
-        Console.WriteLine("Send Asynchronously.......... " + useAsync);
+        Console.WriteLine("Server....................... " + (this.serverUrl != null ? this.serverUrl : "localhost"));
+        Console.WriteLine("User......................... " + (this.userName != null ? this.userName : "(null)"));
+        Console.WriteLine("Destination.................. " + this.name);
+        Console.WriteLine("Send Asynchronously.......... " + this.useAsync);
         Console.WriteLine("Message Text................. ");
 
-        for (int i = 0; i < data.Count; i++)
+        for (int i = 0; i < this.data.Count; i++)
         {
-            Console.WriteLine(data[i]);
+            Console.WriteLine(this.data[i]);
         }
         Console.WriteLine("------------------------------------------------------------------------\n");
-        
+
         try
         {
             TextMessage msg;
             int i;
-            
-            if (data.Count == 0)
+
+            if (this.data.Count == 0)
             {
                 Console.Error.WriteLine("Error: must specify at least one message text\n");
                 Usage();
             }
-            
-            Console.WriteLine("Publishing to destination '" + name + "'\n");
-            
-            ConnectionFactory factory = new TIBCO.EMS.ConnectionFactory(serverUrl);
-            
-            connection = factory.CreateConnection(userName, password);
-            
-            // create the session
-            session = connection.CreateSession(false, Session.AUTO_ACKNOWLEDGE);
-            
-            // create the destination
-            if (useTopic)
-                destination = session.CreateTopic(name);
-            else
-                destination = session.CreateQueue(name);
-            
-            // create the producer
-            msgProducer = session.CreateProducer(null);
 
-            if (useAsync)
-                completionListener = new EMSCompletionListener();
-            
+            Console.WriteLine("Publishing to destination '" + this.name + "'\n");
+
+            ConnectionFactory factory = new ConnectionFactory(this.serverUrl);
+
+            this.connection = factory.CreateConnection(this.userName, this.password);
+
+            // create the session
+            this.session = this.connection.CreateSession(false, Session.AUTO_ACKNOWLEDGE);
+
+            // create the destination
+            if (this.useTopic)
+                this.destination = this.session.CreateTopic(this.name);
+            else
+                this.destination = this.session.CreateQueue(this.name);
+
+            // create the producer
+            this.msgProducer = this.session.CreateProducer(null);
+
+            if (this.useAsync)
+                this.completionListener = new EMSCompletionListener();
+
             // publish messages
-            for (i = 0; i < data.Count; i++)
+            for (i = 0; i < this.data.Count; i++)
             {
                 // create text message
-                msg = session.CreateTextMessage();
-                
+                msg = this.session.CreateTextMessage();
+
                 // set message text
-                msg.Text = (String) data[i];
-                
+                msg.Text = (string)this.data[i];
+
                 // publish message
-                if (useAsync)
-                    msgProducer.Send(destination, msg, completionListener);
+                if (this.useAsync)
+                    this.msgProducer.Send(this.destination, msg, this.completionListener);
                 else
-                    msgProducer.Send(destination, msg);
-                
-                Console.WriteLine("Published message: " + data[i]);
+                    this.msgProducer.Send(this.destination, msg);
+
+                Console.WriteLine("Published message: " + this.data[i]);
             }
-            
+
             // close the connection
-            connection.Close();
+            this.connection.Close();
         }
         catch (EMSException e)
         {
-            Console.Error.WriteLine("Exception in csMsgProducer: " + e.Message);
+            Console.Error.WriteLine($"Exception in {nameof(MessageProducer)}: " + e.Message);
             Console.Error.WriteLine(e.StackTrace);
             Environment.Exit(-1);
         }
     }
-    
-    private void Usage() 
+
+    private void Usage()
     {
-        Console.WriteLine("\nUsage: csMsgProducer [options]");
+        Console.WriteLine("\nUsage: LinxJMS.exe -send [options]");
         Console.WriteLine("                       <message-text-1>");
         Console.WriteLine("                       [<message-text-2>] ...\n");
         Console.WriteLine("");
@@ -211,71 +204,71 @@ public class csMsgProducer
         Console.WriteLine("   -help-ssl               - help on ssl parameters");
         Environment.Exit(0);
     }
-    
-    private void ParseArgs(String[] args) 
+
+    private void ParseArgs(string[] args)
     {
         int i = 0;
-        
+
         while (i < args.Length)
         {
-            if (args[i].CompareTo("-server") == 0) 
+            if (args[i].CompareTo("-server") == 0)
             {
-                if ((i + 1) >= args.Length)
+                if (i + 1 >= args.Length)
                     Usage();
-                serverUrl = args[i + 1];
+                this.serverUrl = args[i + 1];
                 i += 2;
-            } 
-            else 
-            if (args[i].CompareTo("-topic") == 0) 
+            }
+            else
+            if (args[i].CompareTo("-topic") == 0)
             {
-                if ((i + 1) >= args.Length)
+                if (i + 1 >= args.Length)
                     Usage();
-                name = args[i + 1];
+                this.name = args[i + 1];
                 i += 2;
-            } 
-            else 
-            if (args[i].CompareTo("-queue") == 0) 
+            }
+            else
+            if (args[i].CompareTo("-queue") == 0)
             {
-                if ((i + 1) >= args.Length)
+                if (i + 1 >= args.Length)
                     Usage();
-                name = args[i + 1];
+                this.name = args[i + 1];
                 i += 2;
-                useTopic = false;
-            } 
-            else 
+                this.useTopic = false;
+            }
+            else
             if (args[i].CompareTo("-async") == 0)
             {
                 i += 1;
-                useAsync = true;
+                this.useAsync = true;
             }
             else
-            if (args[i].CompareTo("-user") == 0) 
+            if (args[i].CompareTo("-user") == 0)
             {
-                if ((i + 1) >= args.Length)
+                if (i + 1 >= args.Length)
                     Usage();
-                userName = args[i + 1];
+                this.userName = args[i + 1];
                 i += 2;
-            } 
-            else 
-            if (args[i].CompareTo("-password") == 0) 
+            }
+            else
+            if (args[i].CompareTo("-password") == 0)
             {
-                if ((i + 1) >= args.Length)
+                if (i + 1 >= args.Length)
                     Usage();
-                password = args[i + 1];
+                this.password = args[i + 1];
                 i += 2;
-            } 
-            else 
-            if (args[i].CompareTo("-help") == 0) 
+            }
+            else
+            if (args[i].CompareTo("-help") == 0)
             {
                 Usage();
             }
-            else 
-            if (args[i].CompareTo("-help-ssl")==0)
+            else
+            if (args[i].CompareTo("-help-ssl") == 0)
             {
-                tibemsUtilities.sslUsage();
+                SslHelpers.SslUsage();
             }
-            else 
-            if(args[i].StartsWith("-ssl"))
+            else
+            if (args[i].StartsWith("-ssl"))
             {
                 i += 2;
             }
@@ -284,16 +277,11 @@ public class csMsgProducer
             {
                 i += 1;
             }
-            else 
+            else
             {
-                data.Add(args[i]);
+                this.data.Add(args[i]);
                 i++;
             }
         }
     }
-    
-  //  public static void Main(String[] args) 
-  //  {
-  //       new csMsgProducer(args);
-  //  }
 }
