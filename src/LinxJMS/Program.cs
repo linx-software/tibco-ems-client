@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 
 namespace LinxJMS
 {
@@ -7,24 +6,17 @@ namespace LinxJMS
     {
         static void Main(string[] args)
         {
-
             var matchSend = args.FirstOrDefault(stringToCheck => stringToCheck.Contains("-send"));
-
             if (matchSend != null)
             {
-              
                 new csMsgProducer(args);
             }
-            var matchRead = args.FirstOrDefault(stringToCheck => stringToCheck.Contains("-read"));
 
+            var matchRead = args.FirstOrDefault(stringToCheck => stringToCheck.Contains("-read"));
             if (matchRead != null)
             {
-             
                 new csMsgConsumer(args);
             }
-
-
-            // Console.WriteLine("Hello World!");
         }
     }
 }
