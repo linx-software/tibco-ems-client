@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30621.155
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35013.160
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinxJMS", "LinxJMS\LinxJMS.csproj", "{7C7B9A04-0102-43D3-89B6-A68206CF700C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinxJMS", "src\LinxJMS\LinxJMS.csproj", "{E5B10268-DFD2-4C51-8309-FF01EB261D81}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{96F322B2-10BF-4F8F-89B2-B6E001D4A290}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,13 +13,16 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7C7B9A04-0102-43D3-89B6-A68206CF700C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7C7B9A04-0102-43D3-89B6-A68206CF700C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7C7B9A04-0102-43D3-89B6-A68206CF700C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7C7B9A04-0102-43D3-89B6-A68206CF700C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5B10268-DFD2-4C51-8309-FF01EB261D81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5B10268-DFD2-4C51-8309-FF01EB261D81}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5B10268-DFD2-4C51-8309-FF01EB261D81}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5B10268-DFD2-4C51-8309-FF01EB261D81}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E5B10268-DFD2-4C51-8309-FF01EB261D81} = {96F322B2-10BF-4F8F-89B2-B6E001D4A290}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {049D2F35-B2E8-45AE-A571-A496A6A359D8}
